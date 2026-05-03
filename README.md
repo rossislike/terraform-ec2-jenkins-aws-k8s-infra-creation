@@ -12,33 +12,79 @@ Helpful Terraform Links:
 terraform init
 ```
 
-## Step 1: Scan Terraform with tfsec
-
-```
-tfsec . --no-color
-```
-
-The Jenkins server bootstrap installs `tfsec`, and the included `Jenkinsfile` runs this IaC security scan before Terraform planning or applying should be done.
-
-## Step 2: Plan Resources
+## Step 1: Plan Resources
 
 ```
 terraform plan -var-file="vars/dev-east-2.tfvars"
 ```
 
-## Step 3: Apply Resources
+## Step 2: Apply Resources
 
 ```
 terraform apply -var-file="vars/dev-east-2.tfvars"
 ```
 
-## Step 4: Commands to get the Jenkins admin password via command line
+## Step 3: Commands to get the Jenkins admin password via command line
 
 ```
 chmod 400 <keypair>
 ssh -i <keypair> ec2-user@<public_dns>
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
+
+## Step 4: Configure Jenkins Pipeline Job for tfsec
+
+The Jenkins server bootstrap installs `tfsec`, and the included `Jenkinsfile` runs the IaC security scan after the Jenkins instance exists.
+
+1. Open Jenkins in your browser:
+
+```
+http://<jenkins-public-dns>:8081
+```
+
+2. Log in to Jenkins.
+
+3. Click **New Item**.
+
+4. Enter a job name:
+
+```
+terraform-iac-scan
+```
+
+5. Select **Pipeline**, then click **OK**.
+
+6. Scroll to the **Pipeline** section.
+
+7. For **Definition**, select **Pipeline script from SCM**.
+
+8. For **SCM**, select **Git**.
+
+9. In **Repository URL**, enter your Git repository URL:
+
+```
+https://github.com/<your-username>/<your-repo>.git
+```
+
+10. If the repository is private, add Git credentials and select them for the job.
+
+11. Set **Branch Specifier** to the branch Jenkins should build:
+
+```
+*/main
+```
+
+12. Set **Script Path** to:
+
+```
+Jenkinsfile
+```
+
+13. Click **Save**.
+
+14. Click **Build Now**.
+
+15. Open the build and click **Console Output** to review the `tfsec` results.
 
 ## Some Useful Commands
 
